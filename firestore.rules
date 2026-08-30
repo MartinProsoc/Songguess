@@ -1,0 +1,18 @@
+// ==========================================
+// FIRESTORE BIZTONSÁGI SZABÁLYOK
+// ==========================================
+// Ezt kell bemásolnod a Firebase Console-ban:
+// (a projekted) → Build → Firestore Database → Rules fül → illeszd be → Publish
+//
+// Ez garantálja, hogy mindenki KIZÁRÓLAG a saját profilját tudja olvasni/írni
+// (a bejelentkezett felhasználó UID-ja alapján) — más felhasználó adatát senki
+// nem tudja elolvasni vagy módosítani.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
