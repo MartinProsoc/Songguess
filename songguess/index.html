@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songguess</title>
+    <link rel="icon" type="image/x-icon" href="img/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="dynamic-bg" class="dynamic-bg"></div>
+    <div class="grain-overlay"></div>
+
+    <!-- FŐMENÜ -->
+    <div id="menu-screen" class="screen active">
+        <div class="menu-container">
+
+            <div class="cassette-badge" aria-hidden="true">
+                <div class="cassette-badge-reel"></div>
+                <div class="cassette-badge-window">
+                    <span class="cassette-badge-label">SIDE A</span>
+                </div>
+                <div class="cassette-badge-reel"></div>
+            </div>
+
+            <h1 class="logo-title">SONGGUESS</h1>
+            <p class="subtitle">Nyomd el a lejátszást, találd ki a számot.</p>
+
+            <div class="settings-group">
+                <label for="username-input">Felhasználónév</label>
+                <input type="text" id="username-input" placeholder="Írd be a neved..." value="Játékos">
+            </div>
+
+            <div class="settings-group">
+                <label for="category-input">Zenei kategória</label>
+                <select id="category-input">
+                    <option value="all">🎧 Mindegyik keverve</option>
+                    <option value="magyar">🇭🇺 Magyar slágerek</option>
+                    <option value="vilagslager">🌍 Világslágerek (Pop)</option>
+                    <option value="rock_metal">🎸 Rock &amp; Metal</option>
+                    <option value="hiphop_rap">🎤 Hip-Hop &amp; Rap</option>
+                    <option value="electronic">🎛️ Elektronikus / EDM</option>
+                    <option value="jazz_soul">🎷 Jazz &amp; Soul</option>
+                    <option value="classical_soundtrack">🎬 Klasszikus &amp; Filmzene</option>
+                    <option value="latin">💃 Latin</option>
+                    <option value="kpop">✨ K-Pop</option>
+                    <option value="retro">📼 90's / 2000's Retro</option>
+                    <option value="gaming">🎮 Gaming &amp; Sport</option>
+                </select>
+            </div>
+
+            <div class="settings-group">
+                <label>Játékmód</label>
+                <div class="segmented" id="mode-segmented">
+                    <input type="radio" name="game-mode" id="mode-classic" value="classic" checked>
+                    <label for="mode-classic">✍️ Gépeld be</label>
+                    <input type="radio" name="game-mode" id="mode-choice" value="choice">
+                    <label for="mode-choice">🔘 Feleletválasztós</label>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <div class="settings-group half">
+                    <label for="rounds-input">Körök száma</label>
+                    <input type="number" id="rounds-input" min="1" max="20" value="5">
+                </div>
+                <div class="settings-group half">
+                    <label for="time-limit-input">Időkorlát</label>
+                    <select id="time-limit-input">
+                        <option value="0">Nincs</option>
+                        <option value="30">30 mp</option>
+                        <option value="60">60 mp</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="checkbox-row" for="hardcore-input">
+                <input type="checkbox" id="hardcore-input">
+                <span class="checkbox-box"></span>
+                <span>
+                    <strong>Hardcore mód</strong>
+                    <small>Nincs kihagyás — egy rossz tipp és vége a körnek.</small>
+                </span>
+            </label>
+
+            <div class="settings-group">
+                <label for="volume-input">Hangerő: <span id="volume-label">50%</span></label>
+                <input type="range" id="volume-input" min="0" max="100" value="50">
+            </div>
+
+            <button id="start-game-btn" class="btn primary mt-3">▶ Kazetta indítása</button>
+        </div>
+    </div>
+
+    <!-- JÁTÉK FELÜLET -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+
+            <div class="game-header">
+                <button id="back-arrow-btn" class="icon-btn" aria-label="Vissza a főmenübe" title="Vissza a főmenübe">←</button>
+                <span id="round-counter-display">1. Kör / 5</span>
+                <span id="countdown-display" class="hidden">⏱️ 30s</span>
+            </div>
+
+            <div id="streak-display" class="hidden">🔥 Streak: 0</div>
+            <div id="hardcore-badge" class="hardcore-badge hidden">☠️ HARDCORE</div>
+
+            <h1 class="ingame-title">Találd ki a zenét!</h1>
+            <audio id="audio-player"></audio>
+
+            <!-- Kazetta vizualizáló -->
+            <div class="cassette" id="cassette-visualizer">
+                <div class="reel reel-left"><div class="reel-hub"></div></div>
+                <div class="tape-window">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+                <div class="reel reel-right"><div class="reel-hub"></div></div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="step active" id="step-0"></div>
+                <div class="step" id="step-1"></div>
+                <div class="step" id="step-2"></div>
+                <div class="step" id="step-3"></div>
+                <div class="step" id="step-4"></div>
+                <div class="step" id="step-5"></div>
+            </div>
+
+            <div class="audio-progress-container">
+                <div class="audio-progress-fill" id="audio-progress-fill"></div>
+                <div class="limit-marker" style="left: 3.33%"></div>
+                <div class="limit-marker" style="left: 6.66%"></div>
+                <div class="limit-marker" style="left: 13.33%"></div>
+                <div class="limit-marker" style="left: 26.66%"></div>
+                <div class="limit-marker" style="left: 53.33%"></div>
+            </div>
+
+            <div class="time-display" id="time-display">0:00.0 / 0:00.5</div>
+
+            <!-- Klasszikus beviteli mód -->
+            <div class="input-container" id="classic-input-area">
+                <div id="autocomplete-list" class="autocomplete-items"></div>
+                <input type="text" id="guess-input" autocomplete="off" placeholder="Keresés: dal vagy előadó...">
+            </div>
+
+            <!-- Feleletválasztós mód -->
+            <div class="choice-grid hidden" id="choice-input-area"></div>
+
+            <div class="controls">
+                <button id="skip-btn" class="btn secondary">Kihagyás</button>
+                <button id="play-btn" class="btn primary">▶ Lejátszás</button>
+                <button id="submit-btn" class="btn action">Tippelés</button>
+            </div>
+
+            <div class="in-game-volume">
+                <span>🔊</span>
+                <input type="range" id="in-game-volume-input" min="0" max="100" value="50">
+            </div>
+
+            <p id="message-display"></p>
+        </div>
+    </div>
+
+    <!-- STATISZTIKA -->
+    <div id="stats-screen" class="screen">
+        <div class="menu-container">
+            <div class="cassette-badge small" aria-hidden="true">
+                <div class="cassette-badge-reel"></div>
+                <div class="cassette-badge-window"><span class="cassette-badge-label">VÉGE</span></div>
+                <div class="cassette-badge-reel"></div>
+            </div>
+            <h1 class="logo-title small">JÁTÉK VÉGE</h1>
+            <h2 id="stats-username" class="subtitle accent-text">Játékos</h2>
+
+            <div class="stats-table">
+                <div class="stat-row">
+                    <span>Összes kör</span>
+                    <strong id="stat-total">5</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Helyes találat</span>
+                    <strong id="stat-correct" class="accent-text">0</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Max Streak</span>
+                    <strong id="stat-max-streak" class="gold-text">0 🔥</strong>
+                </div>
+                <div class="stat-row highlight">
+                    <span>Pontosság</span>
+                    <strong id="stat-accuracy">0%</strong>
+                </div>
+            </div>
+
+            <button id="back-to-menu-btn" class="btn primary mt-3">Új kazetta</button>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: EREDMÉNY -->
+    <div id="result-modal" class="modal-overlay">
+        <div id="modal-content" class="modal-box">
+            <h3 id="result-message">Eredmény</h3>
+            <img id="result-cover" src="" alt="Borító">
+            <h2 id="result-title">Előadó - Cím</h2>
+            <button id="next-round-btn" class="btn primary mt-3">Következő kör</button>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: KILÉPÉS MEGERŐSÍTÉSE -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box confirm-box">
+            <h3>Biztosan kilépsz?</h3>
+            <p class="confirm-text">A jelenlegi kör és a streak-ed elveszik.</p>
+            <div class="confirm-actions">
+                <button id="confirm-cancel-btn" class="btn secondary">Mégse</button>
+                <button id="confirm-leave-btn" class="btn action">Igen, kilépek</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
