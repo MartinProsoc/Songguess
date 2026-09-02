@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Keresőmotoroknak szóló leírás -->
+<meta name="description" content="Teszteld a zenei tudásod! Nyomd el a lejátszást, találd ki a számot és építsd a legnagyobb streak-et.">
+<!-- Közösségi média előnézet (Open Graph - Facebook, Instagram, Discord) -->
+<meta property="og:image" content="https://songguess.hu/social-preview.jpg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://songguess.hu/">
+<meta property="og:title" content="Songuess - Találd ki a zenét!">
+<meta property="og:description" content="Teszteld a zenei tudásod! Nyomd el a lejátszást, találd ki a számot és építsd a legnagyobb streak-et.">
+<meta property="og:image" content="https://songguess.hu/img/social-preview.jpg">
+<!-- Twitter (X) előnézet -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://songguess.hu/social-preview.jpg">
+<meta name="twitter:title" content="Songuess - Találd ki a zenét!">
+<meta name="twitter:description" content="Teszteld a zenei tudásod! Nyomd el a lejátszást, találd ki a számot és építsd a legnagyobb streak-et.">
+<meta name="twitter:image" content="https://songguess.hu/img/social-preview.jpg">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#140F1F">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap: csak a grid + utility rétegek, a komponens-stílusok (.btn, .form-control, stb.)
+         nélkül, hogy ne írják felül a kazetta-témát. Ez adja a reszponzív rács- és
+         spacing-rendszert (row/col, gap, breakpointok). -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-utilities.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="dynamic-bg" class="dynamic-bg"></div>
+    <div class="grain-overlay"></div>
+
+    <!-- ============================================
+         KEZDŐLAP (Napi Kihívás + Egyéni Játék belépő)
+         ============================================ -->
+    <div id="home-screen" class="screen active">
+        <div class="menu-container home-container">
+
+            <button id="profile-chip-btn" class="profile-chip" title="Profil és jelvények">
+                <span id="profile-chip-icon">🎧</span>
+                <span id="profile-chip-level">1</span>
+            </button>
+
+            <button id="install-app-btn" class="install-chip hidden" title="Alkalmazás telepítése">📲</button>
+
+            <div class="cassette-badge" aria-hidden="true">
+                <div class="cassette-badge-reel"></div>
+                <div class="cassette-badge-window"><span class="cassette-badge-label">SIDE A</span></div>
+                <div class="cassette-badge-reel"></div>
+            </div>
+
+            <h1 class="logo-title">SONGGUESS</h1>
+            <p class="subtitle">Nyomd el a lejátszást, találd ki a számot.</p>
+
+            <button id="guest-reminder-banner" class="guest-reminder-banner hidden">
+                <span class="guest-reminder-icon">⚠️</span>
+                <span class="guest-reminder-text">Vendégként játszol — jelentkezz be, hogy ne veszítsd el a haladásod!</span>
+                <span class="guest-reminder-arrow">→</span>
+            </button>
+
+            <!-- NAPI KIHÍVÁS KÁRTYA -->
+            <div class="daily-card">
+                <div class="daily-card-header">
+                    <span class="daily-card-title">📅 Napi Kihívás</span>
+                    <span id="daily-streak-flame" class="daily-streak-flame">🔥 0</span>
+                </div>
+                <p class="daily-card-sub">Mai kategória: <strong id="daily-category-label">—</strong></p>
+                <p class="daily-card-desc">5 kör, mindenki ugyanazt kapja. Oszd meg az eredményed!</p>
+
+                <button id="daily-start-btn" class="btn action mt-2">▶ Kihívás indítása</button>
+
+                <div id="daily-done-area" class="daily-done-area hidden">
+                    <p class="daily-done-label">✅ Mai kihívás teljesítve</p>
+                    <p id="daily-done-emojis" class="daily-done-emojis"></p>
+                    <p id="daily-done-score" class="daily-done-score"></p>
+                    <button id="daily-share-again-btn" class="btn secondary mt-2">📋 Eredmény másolása</button>
+                </div>
+            </div>
+
+            <div class="divider"><span>vagy</span></div>
+
+            <div class="home-btn-row">
+                <button id="go-setup-btn" class="btn primary">🎛️ Egyéni Játék</button>
+                <button id="go-multiplayer-btn" class="btn action">👥 Multiplayer</button>
+            </div>
+            <button id="go-leaderboard-btn" class="btn secondary mt-2">🏆 Ranglista</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         EGYÉNI JÁTÉK BEÁLLÍTÁSAI
+         ============================================ -->
+    <div id="setup-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="setup-back-btn" class="icon-btn" aria-label="Vissza a kezdőlapra">←</button>
+                <span>Egyéni Játék</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <div class="settings-group">
+                <label for="username-input">Felhasználónév</label>
+                <input type="text" id="username-input" placeholder="Írd be a neved..." value="Játékos">
+                <p id="username-input-locked-hint" class="settings-hint hidden">🔒 A fiókodhoz tartozó név — módosítás: Profil képernyő.</p>
+            </div>
+
+            <div class="settings-group">
+                <label>Zenei kategória <span class="settings-hint">(egy vagy több is választható)</span></label>
+                <div id="category-chip-grid" class="category-chip-grid"></div>
+            </div>
+
+            <div class="settings-group">
+                <label>Játékmód</label>
+                <div class="segmented" id="mode-segmented">
+                    <input type="radio" name="game-mode" id="mode-classic" value="classic" checked>
+                    <label for="mode-classic">✍️ Gépeld be</label>
+                    <input type="radio" name="game-mode" id="mode-choice" value="choice">
+                    <label for="mode-choice">🔘 Feleletválasztós</label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label>Nehézség <span class="settings-hint">(kísérleti — nincs valódi népszerűségi adat)</span></label>
+                <div class="segmented" id="difficulty-segmented">
+                    <input type="radio" name="difficulty" id="difficulty-any" value="any" checked>
+                    <label for="difficulty-any">🎲 Bármi</label>
+                    <input type="radio" name="difficulty" id="difficulty-easy" value="easy">
+                    <label for="difficulty-easy">🟢 Ismert</label>
+                    <input type="radio" name="difficulty" id="difficulty-hard" value="hard">
+                    <label for="difficulty-hard">🔴 Kemény</label>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 settings-group">
+                    <label for="rounds-input">Körök száma</label>
+                    <input type="number" id="rounds-input" min="1" max="20" value="5">
+                </div>
+                <div class="col-12 col-sm-6 settings-group">
+                    <label for="time-limit-input">Időkorlát</label>
+                    <select id="time-limit-input">
+                        <option value="0">Nincs</option>
+                        <option value="30">30 mp</option>
+                        <option value="60">60 mp</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="checkbox-row" for="hardcore-input">
+                <input type="checkbox" id="hardcore-input">
+                <span class="checkbox-box"></span>
+                <span>
+                    <strong>Hardcore mód</strong>
+                    <small>Nincs kihagyás — egy rossz tipp és vége a körnek.</small>
+                </span>
+            </label>
+
+            <label class="checkbox-row" for="practice-input">
+                <input type="checkbox" id="practice-input">
+                <span class="checkbox-box"></span>
+                <span>
+                    <strong>Gyakorló mód</strong>
+                    <small>Nincs XP, statisztika és jelvény — csak bemelegítés, nyomás nélkül.</small>
+                </span>
+            </label>
+
+            <div class="settings-group">
+                <label for="volume-input">Hangerő: <span id="volume-label">50%</span></label>
+                <input type="range" id="volume-input" min="0" max="100" value="50">
+            </div>
+
+            <button id="start-game-btn" class="btn primary mt-3">▶ Kazetta indítása</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         JÁTÉK FELÜLET
+         ============================================ -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+
+            <div id="round-start-countdown" class="round-start-countdown hidden">
+                <span id="round-start-countdown-number" class="round-start-countdown-number"></span>
+            </div>
+
+            <div class="game-header">
+                <button id="back-arrow-btn" class="icon-btn" aria-label="Vissza a kezdőlapra" title="Vissza a kezdőlapra">←</button>
+                <span id="round-counter-display">1. Kör / 5</span>
+                <span id="countdown-display" class="hidden">⏱️ 30s</span>
+            </div>
+
+            <div id="daily-mode-badge" class="daily-mode-badge hidden">📅 NAPI KIHÍVÁS</div>
+            <div id="streak-display" class="hidden">🔥 Streak: 0</div>
+            <div id="hardcore-badge" class="hardcore-badge hidden">☠️ HARDCORE</div>
+
+            <h1 class="ingame-title">Találd ki a zenét!</h1>
+            <audio id="audio-player"></audio>
+
+            <div class="cassette" id="cassette-visualizer">
+                <div class="reel reel-left"><div class="reel-hub"></div></div>
+                <div class="tape-window">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <div class="reel reel-right"><div class="reel-hub"></div></div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="step active" id="step-0"></div>
+                <div class="step" id="step-1"></div>
+                <div class="step" id="step-2"></div>
+                <div class="step" id="step-3"></div>
+                <div class="step" id="step-4"></div>
+                <div class="step" id="step-5"></div>
+            </div>
+
+            <div class="audio-progress-container">
+                <div class="audio-progress-fill" id="audio-progress-fill"></div>
+                <div class="limit-marker" style="left: 3.33%"></div>
+                <div class="limit-marker" style="left: 6.66%"></div>
+                <div class="limit-marker" style="left: 13.33%"></div>
+                <div class="limit-marker" style="left: 26.66%"></div>
+                <div class="limit-marker" style="left: 53.33%"></div>
+            </div>
+
+            <div class="time-display" id="time-display">0:00.0 / 0:00.5</div>
+
+            <div class="input-container" id="classic-input-area">
+                <div id="autocomplete-list" class="autocomplete-items"></div>
+                <input type="text" id="guess-input" autocomplete="off" placeholder="Keresés: dal vagy előadó...">
+            </div>
+
+            <div class="choice-grid hidden" id="choice-input-area"></div>
+
+            <div class="controls">
+                <button id="skip-btn" class="btn secondary">Kihagyás</button>
+                <button id="play-btn" class="btn primary">▶ Lejátszás</button>
+                <button id="submit-btn" class="btn action">Tippelés</button>
+            </div>
+
+            <div class="in-game-volume">
+                <span>🔊</span>
+                <input type="range" id="in-game-volume-input" min="0" max="100" value="50">
+            </div>
+
+            <p id="message-display"></p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         EREDMÉNY / STATISZTIKA
+         ============================================ -->
+    <div id="stats-screen" class="screen">
+        <div class="menu-container">
+            <div class="cassette-badge small" aria-hidden="true">
+                <div class="cassette-badge-reel"></div>
+                <div class="cassette-badge-window"><span class="cassette-badge-label">VÉGE</span></div>
+                <div class="cassette-badge-reel"></div>
+            </div>
+            <h1 id="stats-title" class="logo-title small">JÁTÉK VÉGE</h1>
+            <h2 id="stats-username" class="subtitle accent-text">Játékos</h2>
+
+            <p id="stats-share-grid" class="share-grid"></p>
+
+            <div class="stats-table">
+                <div class="stat-row">
+                    <span>Összes kör</span>
+                    <strong id="stat-total">5</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Helyes találat</span>
+                    <strong id="stat-correct" class="accent-text">0</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Max Streak</span>
+                    <strong id="stat-max-streak" class="gold-text">0 🔥</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Szerzett XP</span>
+                    <strong id="stat-xp" class="gold-text">+0 XP</strong>
+                </div>
+                <div class="stat-row highlight">
+                    <span>Pontosság</span>
+                    <strong id="stat-accuracy">0%</strong>
+                </div>
+            </div>
+
+            <div id="level-up-banner" class="level-up-banner hidden"></div>
+            <div id="badge-unlock-area" class="badge-unlock-area hidden"></div>
+
+            <button id="share-result-btn" class="btn secondary mt-2">📋 Eredmény megosztása</button>
+            <p id="share-result-msg" class="share-result-msg"></p>
+
+            <button id="back-to-home-btn" class="btn primary mt-2">Vissza a kezdőlapra</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         PROFIL
+         ============================================ -->
+    <div id="profile-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="profile-back-btn" class="icon-btn" aria-label="Vissza a kezdőlapra">←</button>
+                <span>Profil</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <!-- ============================================
+                 FIÓK / BEJELENTKEZÉS (Firebase)
+                 ============================================ -->
+            <div id="account-area" class="account-area">
+
+                <!-- Kijelentkezett állapot: bejelentkezés / regisztráció -->
+                <div id="account-logged-out" class="account-box">
+                    <p class="account-hint">☁️ Jelentkezz be, hogy a profilod (XP, jelvények, streak) minden eszközön szinkronban legyen.</p>
+
+                    <div class="segmented" id="auth-mode-segmented">
+                        <input type="radio" name="auth-mode" id="auth-mode-login" checked>
+                        <label for="auth-mode-login">Bejelentkezés</label>
+                        <input type="radio" name="auth-mode" id="auth-mode-signup">
+                        <label for="auth-mode-signup">Regisztráció</label>
+                    </div>
+
+                    <input type="text" id="auth-username-input" class="auth-input hidden" placeholder="Felhasználónév (ez jelenik meg a Ranglistán)" autocomplete="off" maxlength="20">
+                    <input type="email" id="auth-email-input" class="auth-input" placeholder="Email cím" autocomplete="email">
+                    <input type="password" id="auth-password-input" class="auth-input" placeholder="Jelszó (min. 6 karakter)" autocomplete="current-password">
+                    <button id="auth-submit-btn" class="btn action mt-2">Bejelentkezés</button>
+
+                    <div class="divider"><span>vagy</span></div>
+
+                    <button id="google-signin-btn" class="btn secondary google-btn">
+                        <span class="google-g">G</span> Bejelentkezés Google-lal
+                    </button>
+
+                    <p id="auth-error-msg" class="auth-error-msg"></p>
+                </div>
+
+                <!-- Bejelentkezett állapot -->
+                <div id="account-logged-in" class="account-box hidden">
+                    <p class="account-synced-label">☁️ Szinkronizálva</p>
+                    <p id="account-email-display" class="account-email"></p>
+                    <button id="change-username-btn" class="btn secondary mt-2">✏️ Felhasználónév módosítása</button>
+                    <button id="go-friends-btn" class="btn secondary mt-2">👥 Barátok</button>
+                    <button id="sign-out-btn" class="btn secondary mt-2">Kijelentkezés</button>
+                    <p id="sync-status-msg" class="sync-status-msg"></p>
+                    <button id="delete-account-btn" class="delete-account-link">🗑️ Fiók végleges törlése</button>
+                </div>
+            </div>
+
+            <div class="profile-level-ring">
+                <span id="profile-rank-icon" class="profile-rank-icon">🎧</span>
+                <span id="profile-level-num" class="profile-level-num">1</span>
+            </div>
+            <h2 id="profile-rank-title" class="subtitle accent-text">Fülhallgatós Újonc</h2>
+
+            <div class="xp-bar-container">
+                <div class="xp-bar-fill" id="profile-xp-bar-fill"></div>
+            </div>
+            <p id="profile-xp-text" class="xp-text">0 / 150 XP</p>
+
+            <div class="stats-table profile-stats-table">
+                <div class="stat-row"><span>Lejátszott játékok</span><strong id="profile-games">0</strong></div>
+                <div class="stat-row"><span>Összes helyes tipp</span><strong id="profile-correct">0</strong></div>
+                <div class="stat-row"><span>Legjobb streak</span><strong id="profile-best-streak">0 🔥</strong></div>
+                <div class="stat-row"><span>Napi sorozat</span><strong id="profile-daily-streak">0 nap</strong></div>
+                <div class="stat-row"><span>Kihagyás-arány</span><strong id="profile-skip-rate">0%</strong></div>
+            </div>
+
+            <h3 class="badge-section-title">🎯 Zenei ízlésprofil</h3>
+            <div id="taste-profile-area" class="taste-profile-area"></div>
+
+            <h3 class="badge-section-title">🏅 Jelvények</h3>
+            <div id="badge-grid" class="row row-cols-1 row-cols-sm-2 g-2"></div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         RANGLISTA (Globális / Helyi, ország szerint)
+         ============================================ -->
+    <div id="leaderboard-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="leaderboard-back-btn" class="icon-btn" aria-label="Vissza a kezdőlapra">←</button>
+                <span>Ranglista</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <div class="segmented" id="leaderboard-scope-segmented">
+                <input type="radio" name="leaderboard-scope" id="leaderboard-scope-global" checked>
+                <label for="leaderboard-scope-global">🌍 Globális</label>
+                <input type="radio" name="leaderboard-scope" id="leaderboard-scope-weekly">
+                <label for="leaderboard-scope-weekly">📅 Heti</label>
+                <input type="radio" name="leaderboard-scope" id="leaderboard-scope-local">
+                <label for="leaderboard-scope-local">📍 Helyi</label>
+            </div>
+
+            <p class="lb-hint">🔒 Csak bejelentkezett fiókok kerülnek fel a ranglistára — vendégként is megnézheted, de a saját helyezésedhez jelentkezz be a Profilban.</p>
+            <p id="leaderboard-local-hint" class="lb-hint hidden"></p>
+            <p id="leaderboard-status-msg" class="lb-hint"></p>
+
+            <div id="leaderboard-list" class="lb-list"></div>
+            <div id="leaderboard-my-row" class="lb-my-row hidden"></div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         BARÁTOK
+         ============================================ -->
+    <div id="friends-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="friends-back-btn" class="icon-btn" aria-label="Vissza a Profilhoz">←</button>
+                <span>Barátok</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <div class="settings-group">
+                <label for="friend-add-input">Barát hozzáadása felhasználónév alapján</label>
+                <div class="friend-add-row">
+                    <input type="text" id="friend-add-input" placeholder="Pontos felhasználónév..." autocomplete="off" maxlength="20">
+                    <button id="friend-add-btn" class="btn action">Kérés küldése</button>
+                </div>
+                <p id="friend-add-msg" class="lb-hint"></p>
+            </div>
+
+            <div id="friend-requests-section" class="hidden">
+                <h3 class="badge-section-title">📨 Függőben lévő kérések</h3>
+                <div id="friend-requests-list" class="friend-list"></div>
+            </div>
+
+            <h3 class="badge-section-title">👥 Barátaid (<span id="friend-count">0</span>)</h3>
+            <div id="friend-list" class="friend-list"></div>
+            <p id="friend-list-empty" class="lb-hint hidden">Még nincs egy barátod sem — keresd meg őket a felhasználónevük alapján fent!</p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MULTIPLAYER: BELÉPŐ (Gyors játék / Kód alapú szoba)
+         ============================================ -->
+    <div id="mp-entry-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="mp-entry-back-btn" class="icon-btn" aria-label="Vissza a kezdőlapra">←</button>
+                <span>Multiplayer</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <p class="subtitle mp-entry-subtitle">Játssz élőben barátokkal — mindenki ugyanazokat a számokat kapja, élő ranglistával.</p>
+
+            <button id="mp-quickplay-btn" class="btn action mt-2">⚡ Gyors játék</button>
+            <p class="mp-hint">Azonnal bekerülsz egy nyitott szobába — ha nincs egy sem, nyitunk neked egyet.</p>
+
+            <div class="divider"><span>vagy</span></div>
+
+            <button id="mp-create-room-btn" class="btn primary mt-2">➕ Új szoba létrehozása</button>
+
+            <div class="mp-join-row">
+                <input type="text" id="mp-join-code-input" class="mp-code-input" placeholder="PL. A7K2XQ" maxlength="6">
+                <button id="mp-join-room-btn" class="btn secondary">Csatlakozás</button>
+            </div>
+
+            <p id="mp-entry-error-msg" class="auth-error-msg"></p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MULTIPLAYER: ÚJ SZOBA BEÁLLÍTÁSAI (csak a gazdának)
+         ============================================ -->
+    <div id="mp-setup-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="mp-setup-back-btn" class="icon-btn" aria-label="Vissza">←</button>
+                <span>Szoba beállítása</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <div class="settings-group">
+                <label for="mp-username-input">Felhasználónév</label>
+                <input type="text" id="mp-username-input" placeholder="Írd be a neved..." value="Játékos">
+            </div>
+
+            <div class="settings-group">
+                <label>Zenei kategória <span class="settings-hint">(egy vagy több is választható)</span></label>
+                <div id="mp-category-chip-grid" class="category-chip-grid"></div>
+            </div>
+
+            <div class="settings-group">
+                <label>Játékmód</label>
+                <div class="segmented" id="mp-mode-segmented">
+                    <input type="radio" name="mp-game-mode" id="mp-mode-classic" value="classic" checked>
+                    <label for="mp-mode-classic">✍️ Gépeld be</label>
+                    <input type="radio" name="mp-game-mode" id="mp-mode-choice" value="choice">
+                    <label for="mp-mode-choice">🔘 Feleletválasztós</label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label>Nehézség <span class="settings-hint">(kísérleti — nincs valódi népszerűségi adat)</span></label>
+                <div class="segmented" id="mp-difficulty-segmented">
+                    <input type="radio" name="mp-difficulty" id="mp-difficulty-any" value="any" checked>
+                    <label for="mp-difficulty-any">🎲 Bármi</label>
+                    <input type="radio" name="mp-difficulty" id="mp-difficulty-easy" value="easy">
+                    <label for="mp-difficulty-easy">🟢 Ismert</label>
+                    <input type="radio" name="mp-difficulty" id="mp-difficulty-hard" value="hard">
+                    <label for="mp-difficulty-hard">🔴 Kemény</label>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 settings-group">
+                    <label for="mp-rounds-input">Körök száma</label>
+                    <input type="number" id="mp-rounds-input" min="1" max="15" value="5">
+                </div>
+                <div class="col-12 col-sm-6 settings-group">
+                    <label for="mp-time-limit-input">Időkorlát</label>
+                    <select id="mp-time-limit-input">
+                        <option value="0">Nincs</option>
+                        <option value="30" selected>30 mp</option>
+                        <option value="60">60 mp</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label for="mp-maxplayers-input">Max. létszám</label>
+                <select id="mp-maxplayers-input">
+                    <option value="2">2 fő (1v1 duel)</option>
+                    <option value="4" selected>4 fő</option>
+                    <option value="6">6 fő</option>
+                    <option value="8">8 fő</option>
+                    <option value="12">12 fő</option>
+                    <option value="20">20 fő (buli mód)</option>
+                </select>
+            </div>
+
+            <label class="checkbox-row" for="mp-hardcore-input">
+                <input type="checkbox" id="mp-hardcore-input">
+                <span class="checkbox-box"></span>
+                <span>
+                    <strong>Hardcore mód</strong>
+                    <small>Nincs kihagyás — egy rossz tipp és mindenkinek egyénileg vége a körnek.</small>
+                </span>
+            </label>
+
+            <button id="mp-create-confirm-btn" class="btn primary mt-3">🚪 Szoba létrehozása</button>
+            <p id="mp-setup-error-msg" class="auth-error-msg"></p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MULTIPLAYER: VÁRÓTEREM (lobby)
+         ============================================ -->
+    <div id="mp-lobby-screen" class="screen">
+        <div class="menu-container">
+            <div class="game-header setup-header">
+                <button id="mp-lobby-leave-btn" class="icon-btn" aria-label="Kilépés a szobából">←</button>
+                <span>Váróterem</span>
+                <span style="width:38px;"></span>
+            </div>
+
+            <p class="mp-code-label">Szoba kódja — küldd el a barátaidnak</p>
+            <div class="mp-code-display" id="mp-code-display">------</div>
+            <div class="mp-copy-row">
+                <button id="mp-copy-code-btn" class="btn secondary mp-copy-btn">📋 Kód másolása</button>
+                <button id="mp-copy-link-btn" class="btn secondary mp-copy-btn">🔗 Link másolása</button>
+            </div>
+
+            <p id="mp-lobby-settings-summary" class="mp-settings-summary"></p>
+
+            <h3 class="badge-section-title mp-players-title">👥 Játékosok (<span id="mp-player-count">0</span>/<span id="mp-player-max">–</span>)</h3>
+            <div id="mp-player-list" class="mp-player-list"></div>
+
+            <button id="mp-ready-btn" class="btn secondary mt-2">✅ Kész vagyok</button>
+            <button id="mp-start-btn" class="btn primary mt-2 hidden">▶ Játék indítása</button>
+            <p id="mp-lobby-hint" class="mp-hint"></p>
+            <p id="mp-lobby-error-msg" class="auth-error-msg"></p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MULTIPLAYER: JÁTÉK FELÜLET
+         ============================================ -->
+    <div id="mp-game-screen" class="screen">
+        <div class="game-container mp-game-container">
+
+            <div id="mp-round-start-countdown" class="round-start-countdown hidden">
+                <span id="mp-round-start-countdown-number" class="round-start-countdown-number"></span>
+            </div>
+
+            <div class="game-header">
+                <button id="mp-game-leave-btn" class="icon-btn" aria-label="Kilépés a szobából" title="Kilépés a szobából">←</button>
+                <span id="mp-round-counter-display">1. Kör / 5</span>
+                <span id="mp-countdown-display" class="hidden">⏱️ 30s</span>
+            </div>
+
+            <div id="mp-live-leaderboard" class="mp-live-leaderboard"></div>
+
+            <div id="mp-streak-display" class="mp-streak-display hidden">🔥 Streak: 0</div>
+            <div id="mp-hardcore-badge" class="hardcore-badge hidden">☠️ HARDCORE</div>
+
+            <h1 class="ingame-title">Találd ki a zenét!</h1>
+            <audio id="mp-audio-player"></audio>
+
+            <div class="cassette" id="mp-cassette-visualizer">
+                <div class="reel reel-left"><div class="reel-hub"></div></div>
+                <div class="tape-window">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+                </div>
+                <div class="reel reel-right"><div class="reel-hub"></div></div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="step active" id="mp-step-0"></div>
+                <div class="step" id="mp-step-1"></div>
+                <div class="step" id="mp-step-2"></div>
+                <div class="step" id="mp-step-3"></div>
+                <div class="step" id="mp-step-4"></div>
+                <div class="step" id="mp-step-5"></div>
+            </div>
+
+            <div class="audio-progress-container">
+                <div class="audio-progress-fill" id="mp-audio-progress-fill"></div>
+                <div class="limit-marker" style="left: 3.33%"></div>
+                <div class="limit-marker" style="left: 6.66%"></div>
+                <div class="limit-marker" style="left: 13.33%"></div>
+                <div class="limit-marker" style="left: 26.66%"></div>
+                <div class="limit-marker" style="left: 53.33%"></div>
+            </div>
+
+            <div class="time-display" id="mp-time-display">0:00.0 / 0:00.5</div>
+
+            <div class="input-container" id="mp-classic-input-area">
+                <div id="mp-autocomplete-list" class="autocomplete-items"></div>
+                <input type="text" id="mp-guess-input" class="mp-guess-input" autocomplete="off" placeholder="Keresés: dal vagy előadó...">
+            </div>
+
+            <div class="choice-grid hidden" id="mp-choice-input-area"></div>
+
+            <div class="controls">
+                <button id="mp-skip-btn" class="btn secondary">Kihagyás</button>
+                <button id="mp-play-btn" class="btn primary">▶ Lejátszás</button>
+                <button id="mp-submit-btn" class="btn action">Tippelés</button>
+            </div>
+
+            <p id="mp-message-display" class="mp-message-display"></p>
+
+            <div id="mp-reveal-card" class="reveal-card hidden">
+                <div class="reveal-cover-wrap">
+                    <img id="mp-reveal-cover" class="reveal-cover" src="" alt="">
+                </div>
+                <div id="mp-reveal-title" class="reveal-title"></div>
+            </div>
+
+            <div id="mp-waiting-area" class="mp-waiting-area hidden">
+                <p class="mp-waiting-title">⏳ Várakozás a többiekre...</p>
+                <p id="mp-waiting-list" class="mp-waiting-list"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         MULTIPLAYER: VÉGEREDMÉNY / RANGLISTA
+         ============================================ -->
+    <div id="mp-results-screen" class="screen">
+        <div class="menu-container">
+            <div class="cassette-badge small" aria-hidden="true">
+                <div class="cassette-badge-reel"></div>
+                <div class="cassette-badge-window"><span class="cassette-badge-label">VÉGE</span></div>
+                <div class="cassette-badge-reel"></div>
+            </div>
+            <h1 class="logo-title small">VÉGEREDMÉNY</h1>
+            <p class="subtitle accent-text">Multiplayer szoba</p>
+
+            <div id="mp-final-leaderboard" class="mp-final-leaderboard"></div>
+
+            <p id="mp-results-skip-king" class="lb-hint hidden"></p>
+            <p id="mp-results-xp" class="xp-text"></p>
+
+            <button id="mp-results-rematch-btn" class="btn secondary mt-2 hidden">🔁 Új kör ugyanezzel a szobával</button>
+            <button id="mp-results-home-btn" class="btn primary mt-2">Vissza a kezdőlapra</button>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: EREDMÉNY -->
+    <div id="result-modal" class="modal-overlay">
+        <div id="modal-content" class="modal-box">
+            <h3 id="result-message">Eredmény</h3>
+            <div id="result-cover-wrap" class="reveal-cover-wrap">
+                <img id="result-cover" src="" alt="Borító">
+            </div>
+            <h2 id="result-title">Előadó - Cím</h2>
+            <button id="next-round-btn" class="btn primary mt-3">Következő kör</button>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: KILÉPÉS MEGERŐSÍTÉSE -->
+    <div id="confirm-modal" class="modal-overlay">
+        <div class="modal-box confirm-box">
+            <h3>Biztosan kilépsz?</h3>
+            <p class="confirm-text">A jelenlegi kör és a streak-ed elveszik.</p>
+            <div class="confirm-actions">
+                <button id="confirm-cancel-btn" class="btn secondary">Mégse</button>
+                <button id="confirm-leave-btn" class="btn action">Igen, kilépek</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: FIÓK TÖRLÉSE -->
+    <div id="delete-account-modal" class="modal-overlay">
+        <div class="modal-box confirm-box">
+            <h3>Fiók törlése</h3>
+            <p class="confirm-text">Ez véglegesen törli a fiókodat és az összes felhőben mentett haladásodat (XP, jelvények, streak). Ez nem vonható vissza.</p>
+            <div id="reauth-password-area" class="reauth-password-area hidden">
+                <input type="password" id="reauth-password-input" class="auth-input" placeholder="Erősítsd meg a jelszavaddal">
+            </div>
+            <p id="delete-account-error-msg" class="auth-error-msg"></p>
+            <div class="confirm-actions">
+                <button id="delete-account-cancel-btn" class="btn secondary">Mégse</button>
+                <button id="delete-account-confirm-btn" class="btn danger">Végleges törlés</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FELUGRÓ ABLAK: FELHASZNÁLÓNÉV MEGADÁSA (első bejelentkezéskor, pl. Google-lal, vagy
+         régebbi — a felhasználónév-kötelezővé tétele előtt regisztrált — fióknál) -->
+    <div id="username-setup-modal" class="modal-overlay">
+        <div class="modal-box confirm-box">
+            <h3>Válassz felhasználónevet</h3>
+            <p class="confirm-text">Ez a név jelenik meg a Ranglistán és a Multiplayer szobákban — sértő vagy gyűlöletkeltő nevet nem fogadunk el.</p>
+            <input type="text" id="username-setup-input" class="auth-input" placeholder="Felhasználónév" autocomplete="off" maxlength="20">
+            <p id="username-setup-error-msg" class="auth-error-msg"></p>
+            <div class="confirm-actions">
+                <button id="username-setup-signout-btn" class="btn secondary">Mégse, kijelentkezem</button>
+                <button id="username-setup-confirm-btn" class="btn action">Mentés</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase (compat SDK, hogy a script.js-t ne kelljen modullá alakítani) —
+         a bejelentkezéshez és a felhő-mentéshez. Ha a firebase-config.js még
+         nincs kitöltve a saját projekted adataival, ez a rész csendben kikapcsolt
+         állapotban marad, a játék helyi (vendég) módban továbbra is működik. -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="multiplayer.js"></script>
+    <script src="leaderboard.js"></script>
+    <script src="friends.js"></script>
+    <script>
+        // PWA telepíthetőség — a service worker regisztrálja az app-héjat, hogy a böngésző
+        // felajánlhassa a "Telepítés" / "Hozzáadás a kezdőképernyőhöz" lehetőséget, és az
+        // oldal internetkapcsolat nélkül is legalább betöltsön. Csendben, hiba nélkül
+        // kihagyjuk régebbi böngészőkön, ahol nincs Service Worker támogatás.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js').catch(() => { /* no-op */ });
+            });
+        }
+    </script>
+</body>
+</html>
