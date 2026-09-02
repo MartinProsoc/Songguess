@@ -1,0 +1,16 @@
+{
+  "name": "Songguess — Találd ki a zenét!",
+  "short_name": "Songguess",
+  "description": "Zenei kitalálós játék — hallgasd meg a részletet, találd ki a számot, építsd a streaket.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#140F1F",
+  "theme_color": "#140F1F",
+  "lang": "hu",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
